@@ -15,12 +15,50 @@ this file and include it in basic-server.js so that it actually works.
 var databaseOfMessages = [];
 
 var requestHandler = function(request, response) {
-  // const { headers, method, url } = request;
-  // let results = databaseOfMessages.slice(0);
   var statusCode = 200;
   var headers = defaultCorsHeaders;
   headers['Content-Type'] = 'application/json';
-  if (request.method === 'GET' && request.url === '/classes/messages') {
+  if (request.method === 'OPTIONS') {
+    var options = {
+      POST: {
+        url: {
+          type: 'string',
+          description: 'The url of the server',
+          required: true
+        },
+        data: {
+          type: 'string',
+          description: 'The message that you want to send',
+          required: true
+        },
+        contentType: {
+          type: 'string',
+          description: 'Only accepts application/json',
+          required: false
+        }
+      },
+      GET: {
+        url: {
+          type: 'string',
+          description: 'The url of the server',
+          required: true
+        },
+        data: {
+          type: 'string',
+          description: 'Not neccessary',
+          required: false
+        },
+        contentType: {
+          type: 'string',
+          description: 'Only accepts application/json',
+          required: false
+        }
+      }
+    };
+    response.writeHead(statusCode, headers);
+    var responseBody = { results: options };
+    response.end(JSON.stringify(responseBody));
+  } else if (request.method === 'GET' && request.url === '/classes/messages') {
     response.writeHead(statusCode, headers);
     var responseBody = { results: databaseOfMessages };
     response.end(JSON.stringify(responseBody));
@@ -34,15 +72,13 @@ var requestHandler = function(request, response) {
         databaseOfMessages.push(JSON.parse(chunk.toString()));
       })
       .on('end', () => {
-        // var headers = defaultCorsHeaders;
-        // headers['Content-Type'] = 'application/json';
         response.writeHead(statusCode, headers);
         response.end();
       });
   } else {
     statusCode = 404;
     response.writeHead(statusCode, headers);
-    response.end();
+    response.end('hello world');
   }
 
   // Request and Response come from node's http module.
@@ -59,9 +95,9 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log(
-    '\n\n Serving request type ' + request.method + ' for url ' + request.url
-  );
+  // console.log(
+  //   '\n\n Serving request type ' + request.method + ' for url ' + request.url
+  // );
 
   // console.log(
   //   'this is our results:  ' +

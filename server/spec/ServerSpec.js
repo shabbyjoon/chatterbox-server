@@ -44,6 +44,63 @@ describe('Node Server Request Listener Function', function() {
     expect(res._ended).to.equal(true);
   });
 
+  it('Should send back an object with properties of "username" & "text"', function() {
+    var stubMsg = {
+      username: 'Jono',
+      text: 'Do my bidding!'
+    };
+    var req = new stubs.request('/classes/messages', 'POST', stubMsg);
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    var parsedBody = JSON.parse(res._data).results;
+    expect(parsedBody[0]).to.have.property('username');
+    expect(parsedBody[0]).to.have.property('text');
+    expect(res._ended).to.equal(true);
+  });
+
+  it('Should handle OPTIONS requests & return the proper status code', function() {
+    var req = new stubs.request('/classes/messages', 'OPTIONS');
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(200);
+    expect(res._ended).to.equal(true);
+  });
+
+  it('Should handle OPTIONS requests & check for proper properties', function() {
+    var req = new stubs.request('/classes/messages', 'OPTIONS');
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    var parsedBody = JSON.parse(res._data).results;
+    expect(parsedBody).to.have.property('POST');
+    expect(parsedBody).to.have.property('GET');
+    expect(res._ended).to.equal(true);
+  });
+
+  it('Should handle OPTIONS requests & properly specify the required object contents', function() {
+    var req = new stubs.request('/classes/messages', 'OPTIONS');
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    var parsedBody = JSON.parse(res._data).results;
+    expect(parsedBody.POST.url.required).to.equal(true);
+    expect(parsedBody.POST.data.required).to.equal(true);
+    expect(parsedBody.GET.url.required).to.equal(true);
+    expect(parsedBody.GET.data.required).to.equal(false);
+    expect(res._ended).to.equal(true);
+  });
+
   it('Should send an object containing a `results` array', function() {
     var req = new stubs.request('/classes/messages', 'GET');
     var res = new stubs.response();
@@ -98,6 +155,44 @@ describe('Node Server Request Listener Function', function() {
     expect(messages.length).to.be.above(0);
     expect(messages[0].username).to.equal('Jono');
     expect(messages[0].text).to.equal('Do my bidding!');
+    expect(res._ended).to.equal(true);
+  });
+
+  it('Should not overwrite previous messages', function() {
+    var stubMsg = {
+      username: 'Jono',
+      text: 'Do my bidding!'
+    };
+    var req = new stubs.request('/classes/messages', 'POST', stubMsg);
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(201);
+
+    stubMsg = {
+      username: 'Bono',
+      text: 'Don\'t do my bidding!'
+    };
+    req = new stubs.request('/classes/messages', 'POST', stubMsg);
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(201);
+
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(200);
+    var messages = JSON.parse(res._data).results;
+    expect(messages.length).to.be.above(1);
+    expect(messages[0].username).to.equal('Jono');
+    expect(messages[0].text).to.equal('Do my bidding!');
+    expect(messages[4].username).to.equal('Bono');
+    expect(messages[4].text).to.equal('Don\'t do my bidding!');
     expect(res._ended).to.equal(true);
   });
 

@@ -1,7 +1,7 @@
 var app = {
   //TODO: The current 'handleUsernameClick' function just toggles the class 'friend'
   //to all messages sent by the user
-  server: 'http://127.0.0.1:3000',
+  server: 'http://127.0.0.1:3000/classes/messages',
   username: 'anonymous',
   roomname: 'lobby',
   lastMessageId: 0,
@@ -48,10 +48,10 @@ var app = {
 
         // Trigger a fetch to update the messages, pass true to animate
         app.fetch();
-      },
-      error: function(error) {
-        console.error('chatterbox: Failed to send message', error);
       }
+      // error: function(error) {
+      //   console.error('chatterbox: Failed to send message', error);
+      // }
     });
   },
 
@@ -59,7 +59,8 @@ var app = {
     $.ajax({
       url: app.server,
       type: 'GET',
-      data: { order: '-createdAt' },
+      // data: { order: '-createdAt' },
+      data: {},
       success: function(data) {
         // Don't bother if we have nothing to work with
         if (!data.results || !data.results.length) {
@@ -83,10 +84,10 @@ var app = {
           // Store the ID of the most recent message
           app.lastMessageId = mostRecentMessage.objectId;
         }
-      },
-      error: function(error) {
-        console.error('chatterbox: Failed to fetch messages', error);
       }
+      // error: function(error) {
+      //   console.error('chatterbox: Failed to fetch messages', error);
+      // }
     });
   },
 
@@ -173,7 +174,7 @@ var app = {
     $message.text(message.text).appendTo($chat);
 
     // Add the message to the UI
-    app.$chats.append($chat);
+    app.$chats.prepend($chat);
   },
 
   handleUsernameClick: function(event) {
@@ -231,7 +232,7 @@ var app = {
 
   startSpinner: function() {
     $('.spinner img').show();
-    $('form input[type=submit]').attr('disabled', 'true');
+    // $('form input[type=submit]').attr('disabled', 'true');
   },
 
   stopSpinner: function() {
